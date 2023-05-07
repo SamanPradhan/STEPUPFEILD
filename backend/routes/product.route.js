@@ -22,18 +22,23 @@ productRouter.post("/add", async (req, res) => {
 productRouter.get("/", async (req, res) => {
   try {
     console.log(req.query);
-    let search = req.query.search;
+    let search = req.query.search || "";
     let pageNumber = req.query.pageNumber;
     let limit = req.query.limit;
     const skip = (pageNumber - 1) * limit;
     // productModel.createIndex({ name: "text", brand: "text" });
 
     // Continue with your queries and other operations here
+
     const searchQuery = {
       $text: {
         $search: search,
       },
     };
+    if (searchQuery.$text.$search === "") {
+      // If the search term is empty, remove the $text operator
+      delete searchQuery.$text;
+    }
     const getProduct = await productModel
       .find(searchQuery)
       .skip(skip)
