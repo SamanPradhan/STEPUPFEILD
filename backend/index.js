@@ -51,7 +51,6 @@ app.get(
 app.use("/users", userRouter);
 
 //authentication
-app.use(authentication);
 
 app.use("/products", productRouter);
 app.use("/orders", orderRouter);

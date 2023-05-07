@@ -3,6 +3,7 @@ const productRouter = express.Router();
 const { productModel } = require("../models/product.model");
 const { CommentModel } = require("../models/comment.model");
 
+const { authentication } = require("./middlewares/auth.middleware");
 //adding products to DB
 productRouter.post("/add", async (req, res) => {
   console.log(req.body);
