@@ -22,7 +22,7 @@ app.get("/", (req, res) => {
   res.status(200).send({ msg: "home route" });
 });
 
-//google oauth route
+//google oauth
 app.get(
   "/auth/google",
   passport.authenticate("google", {
