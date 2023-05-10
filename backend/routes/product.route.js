@@ -2,6 +2,8 @@ const express = require("express");
 const productRouter = express.Router();
 const { productModel } = require("../models/product.model");
 const { CommentModel } = require("../models/comment.model");
+const { allcomments, allstars } = require("../helpers/aggregation");
+const { authentication } = require("../middlewares/auth.middleware");
 
 //adding products to DB
 productRouter.post("/add", async (req, res) => {
@@ -77,17 +79,18 @@ productRouter.delete("/delete/:id", async (req, res) => {
 });
 
 // add comments
-productRouter.post("/comment/:id", async (req, res) => {
+productRouter.post("/comment/:id", authentication, async (req, res) => {
   try {
     const id = req.params.id;
-    const { userid, msg } = req.body;
+    console.log(req.body);
+    const { userID, title, rating, description } = req.body;
     const payload = {
-      userid,
-      msg,
+      userID,
       productid: id,
-    };
-    const comment = new CommentModel(payload);
-    await comment.save();
+      title, rating, description,
+      date: new Date()
+    }
+    await CommentModel.findOneAndUpdate({ userID }, payload, { upsert: true });
 
     res.status(200).send({ msg: "comment is saved" });
   } catch (error) {
@@ -98,11 +101,37 @@ productRouter.post("/comment/:id", async (req, res) => {
 productRouter.get("/comments/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const data = await CommentModel.find({ productid: id });
-
-    res.status(200).send({ data });
+    const comments = await CommentModel.aggregate(allcomments(id));
+    res.status(200).send({ comments });
   } catch (error) {
     res.status(400).send({ msg: error.message });
   }
 });
+
+productRouter.delete("/comments/:id", authentication, async (req, res) => {
+  try {
+    const id = req.params.id;
+    const comment = await CommentModel.findById({ _id: id });
+    const { userID } = req.body;
+    if (comment.userID.toString() !== userID) return res.status(403).send({ msg: 'not authorized' })
+
+    await CommentModel.findByIdAndDelete({ _id: id });
+
+    res.status(200).send({ msg: 'Review Deleted' });
+  } catch (error) {
+    res.status(400).send({ msg: error.message });
+  }
+});
+
+
+productRouter.get("/stars/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const stars = await CommentModel.aggregate(allstars(id));
+    res.status(200).send(stars[0]);
+  } catch (error) {
+    res.status(400).send({ msg: error.message });
+  }
+});
+
 module.exports = { productRouter };
