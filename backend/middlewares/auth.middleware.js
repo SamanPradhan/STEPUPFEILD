@@ -5,7 +5,8 @@ require("dotenv").config();
 const authentication = async (req, res, next) => {
   // console.log(req);
   // console.log(req.cookies);
-
+  // res.send("hi");
+  // return;
   // console.log(req.body.cookie);
   // return;
   const stepupAccessToken = req.headers.authorization;
